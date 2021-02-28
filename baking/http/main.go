@@ -81,6 +81,7 @@ func main() {
 
 	router.POST("/signup", userHandler.SignUp)
 	router.POST("/login", userHandler.Login)
+	router.GET("/users/:id", userHandler.GetSingleUser)
 	//http.HandleFunc("/login", uh.Login)
 	//	http.HandleFunc("/signup", uh.SignUp)
 
