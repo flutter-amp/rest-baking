@@ -80,8 +80,10 @@ func main() {
 	router.GET("/recipe/comments/:rid", commentHandler.GetCommentsByRecipe)
 	router.PUT("/comments/update/:id", commentHandler.PutComment)
 	router.DELETE("/comments/delete/:id", commentHandler.DeleteComment)
+
 	router.POST("/signup", userHandler.SignUp)
 	router.POST("/login", userHandler.Login)
+	router.GET("/users/:id", userHandler.GetSingleUser)
 	//http.HandleFunc("/login", uh.Login)
 	//	http.HandleFunc("/signup", uh.SignUp)
 

@@ -28,6 +28,38 @@ func NewUserHandler(us user.UserService) *UserHandler {
 	return &UserHandler{UserService: us}
 }
 
+func (uh *UserHandler) GetSingleUser(w http.ResponseWriter,
+	r *http.Request, ps httprouter.Params) {
+
+	id, err := strconv.Atoi(ps.ByName("id"))
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	user, errs := uh.UserService.User(uint(id))
+
+	if len(errs) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	output, err := json.MarshalIndent(user, "", "\t\t")
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
+	return
+}
+
 //func (uh *UserHandler) Authenticated(next http.HandlerFunc) http.HandlerFunc {
 // 	// validate the token
 // 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -106,15 +138,17 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 	fmt.Println("sencond fffffffffffffff")
 	fmt.Println(user1)
 	if len(errs) > 0 || !hash.ArePasswordsSame(user1.Password, user.Password) {
-		fmt.Println("HEEEEEEEEEEEEEEEE")
+
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 
 		return
 	}
-
+	fmt.Println("THE ID ISSSSSSSSSSSS")
+	fmt.Println(user.ID)
 	tokenString, err := Rtoken.GenerateJwtToken([]byte(Rtoken.GenerateRandomID(32)), Rtoken.CustomClaims{
-		SessionId: strconv.Itoa(int(user.ID)),
+
+		SessionId: strconv.Itoa(int(user1.ID)),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
 			IssuedAt:  time.Now().Unix(),
