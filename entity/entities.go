@@ -5,14 +5,15 @@ import (
 )
 
 type Recipe struct {
-	ID         uint   `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	UserID     uint   `json:"userid"`
-	Title      string `json:"title" gorm:"type:varchar(255);not null"`
-	Duration   string `json:"duration" gorm:"type:varchar(255);not null"`
-	Servings   int    `json:"servings"`
-	imageUrl   string `json:"imageUrl" gorm:"type:varchar(255);not null"`
-	Comments   []Comment
-	ingredient []Ingredient
+	ID          uint   `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	UserID      uint   `json:"userid"`
+	Title       string `json:"title" gorm:"type:varchar(255);not null"`
+	Duration    string `json:"duration" gorm:"type:varchar(255);not null"`
+	Servings    int    `json:"servings"`
+	imageUrl    string `json:"imageUrl" gorm:"type:varchar(255);not null"`
+	Comments    []Comment
+	Ingredients []Ingredient
+	Steps       []Step
 }
 
 type User struct {
@@ -34,8 +35,13 @@ type Comment struct {
 
 type Ingredient struct {
 	ID         uint   `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
-	RecipeID   uint   `json:"recipeidin" gorm:"type:varchar(255);not null`
-	title      string `json:"title" gorm:"type:varchar(255);not null`
-	quantity   string `json:"quantity" gorm:"DEFAULT:0"`
-	measurment string `json:"measurment" gorm:"type:varchar(255);not null`
+	RecipeID   uint   `json:"recipeid" `
+	Title      string `json:"title" gorm:"type:varchar(255);not null`
+	Quantity   uint   `json:"quantity" gorm:"DEFAULT:0"`
+	Measurment string `json:"measurment" gorm:"type:varchar(255);not null`
+}
+type Step struct {
+	ID        uint   `json:"id" gorm:"primary_key;AUTO_INCREMENT"`
+	RecipeID  uint   `json:"recipeid" `
+	Direction string `json:"direction" gorm:"type:varchar(255);not null`
 }

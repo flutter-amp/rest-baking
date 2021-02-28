@@ -11,6 +11,7 @@ import (
 
 	"github.com/flutter-amp/baking-api/entity"
 	"github.com/flutter-amp/baking-api/recipe"
+
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -34,6 +35,35 @@ func (rh *RecipeHandler) GetRecipes(w http.ResponseWriter, r *http.Request, _ ht
 	}
 
 	output, err := json.MarshalIndent(recipes, "", "\t\t")
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
+	return
+
+}
+func (rh *RecipeHandler) GetIngredients(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	id, errr := strconv.Atoi(ps.ByName("id"))
+
+	if errr != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	ingredients, errs := rh.recipeService.Ingredients(uint(id))
+
+	if len(errs) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	output, err := json.MarshalIndent(ingredients, "", "\t\t")
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -85,7 +115,6 @@ func (rh *RecipeHandler) PostRecipe(w http.ResponseWriter, r *http.Request, ps h
 	r.Body.Read(body)
 	recipe := &entity.Recipe{}
 	fmt.Println("in post recipe 2")
-
 	err := json.Unmarshal(body, recipe)
 	// for i := 0; i < recipe..length; i++ {
 	// 	fmt.Println("gooooooooooooooooooooooooo")
@@ -100,7 +129,8 @@ func (rh *RecipeHandler) PostRecipe(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	recipe, errs := rh.recipeService.StoreRecipe(recipe)
-
+	fmt.Println("my recipeee")
+	fmt.Println(recipe)
 	if len(errs) > 0 {
 		//fmt.Println("HEEEEEEEEEEEEEEEE")
 		w.Header().Set("Content-Type", "application/json")
@@ -115,7 +145,7 @@ func (rh *RecipeHandler) PostRecipe(w http.ResponseWriter, r *http.Request, ps h
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-
+	fmt.Println(output)
 	p := fmt.Sprintf("/recipes/add/%d", recipe.ID)
 	w.Header().Set("Location", p)
 	w.WriteHeader(http.StatusCreated)
@@ -127,10 +157,10 @@ func (rh *RecipeHandler) PostRecipe(w http.ResponseWriter, r *http.Request, ps h
 func (rh *RecipeHandler) PostImage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Println("image here")
 	r.ParseForm()
-
+	fmt.Println("steppp1")
 	file, handler, err := r.FormFile("file")
-
-	rid := r.Header.Get("id")
+	fmt.Println("steppp2")
+	rid := ps.ByName("id")
 	fmt.Println(rid)
 	fmt.Println(file != nil)
 	fmt.Println(handler.Filename)
@@ -146,17 +176,17 @@ func (rh *RecipeHandler) PostImage(w http.ResponseWriter, r *http.Request, ps ht
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
-	id, err := strconv.Atoi(ps.ByName(rid))
+	id, _ := strconv.Atoi(rid)
 	if err != nil {
 		fmt.Println("conversion")
 	}
 	recipet, errs := rh.recipeService.Recipe(uint(id))
 	if errs != nil {
-		fmt.Println("call single recipe")
+		fmt.Println(errs)
 	}
 
 	fmt.Println(recipet)
-	dst, err := os.Create(filepath.Join("./", filepath.Base(rid+""+handler.Filename)))
+	dst, err := os.Create(filepath.Join("./images/", filepath.Base(rid+""+handler.Filename)))
 	defer dst.Close()
 	if _, err = io.Copy(dst, file); err != nil {
 		fmt.Println("erorrrrrrrrrrrrrrrrr")
@@ -262,6 +292,7 @@ func (rh *RecipeHandler) PutRecipe(w http.ResponseWriter, r *http.Request, ps ht
 	r.Body.Read(body)
 	json.Unmarshal(body, &recipe)
 	recipe, errs = rh.recipeService.UpdateRecipe(recipe)
+	fmt.Println(recipe)
 
 	if len(errs) > 0 {
 		w.Header().Set("Content-Type", "application/json")

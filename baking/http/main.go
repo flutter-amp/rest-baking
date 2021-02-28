@@ -48,7 +48,8 @@ func main() {
 	dbconn.AutoMigrate(&entity.Recipe{})
 	dbconn.AutoMigrate(&entity.User{})
 	dbconn.AutoMigrate(&entity.Comment{})
-
+	dbconn.AutoMigrate(&entity.Ingredient{})
+	dbconn.AutoMigrate(&entity.Step{})
 	recipeRepo := resrep.NewRecipeGormRepo(dbconn)
 	recipeService := resser.NewRecipeService(recipeRepo)
 	recipeHandler := handler.NewRecipeHandler(recipeService)
@@ -63,8 +64,9 @@ func main() {
 
 	router := httprouter.New()
 	router.GET("/recipes", recipeHandler.GetRecipes)
+	router.GET("/ingredients/:id", recipeHandler.GetIngredients)
 	router.POST("/recipes/new", recipeHandler.PostRecipe)
-	router.POST("/recipes/newImage", recipeHandler.PostImage)
+	router.POST("/recipes/newImage/:id", recipeHandler.PostImage)
 	router.GET("/recipes/get/:id", recipeHandler.GetSingleRecipe)
 	router.DELETE("/recipes/delete/:id", recipeHandler.DeleteRecipe)
 	router.PUT("/recipes/update/:id", recipeHandler.PutRecipe)
