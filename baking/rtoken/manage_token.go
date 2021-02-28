@@ -20,6 +20,7 @@ func NewClaims(sessionId string, expire int64) jwt.Claims {
 		},
 	}
 }
+
 func GenerateJwtToken(signingKey []byte, claims jwt.Claims) (string, error) {
 	tn := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedString, err := tn.SignedString(signingKey)

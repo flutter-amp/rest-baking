@@ -4,6 +4,7 @@ import "github.com/flutter-amp/baking-api/entity"
 
 type RecipeRepository interface {
 	Recipes() ([]entity.Recipe, []error)
+	Ingredients(id uint) ([]entity.Ingredient, []error)
 	Recipe(id uint) (*entity.Recipe, []error)
 	UserRecipes(uid uint) ([]entity.Recipe, []error)
 	UpdateRecipe(recipe *entity.Recipe) (*entity.Recipe, []error)

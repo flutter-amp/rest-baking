@@ -22,7 +22,16 @@ func (rs *RecipeService) Recipes() ([]entity.Recipe, []error) {
 	}
 	return rsps, errs
 }
+func (rs *RecipeService) Ingredients(id uint) ([]entity.Ingredient, []error) {
 
+	ing, err := rs.recipeRepo.Ingredients(id)
+
+	if len(err) > 0 {
+		return nil, err
+	}
+
+	return ing, err
+}
 func (rs *RecipeService) StoreRecipe(recipe *entity.Recipe) (*entity.Recipe, []error) {
 	res, errs := rs.recipeRepo.StoreRecipe(recipe)
 	if len(errs) > 0 {

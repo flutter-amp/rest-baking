@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"Movie-and-events/hash"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/flutter-amp/baking-api/baking/hash"
 	Rtoken "github.com/flutter-amp/baking-api/baking/rtoken"
 	"github.com/flutter-amp/baking-api/entity"
 	"github.com/flutter-amp/baking-api/user"
@@ -111,14 +112,16 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 
 		return
 	}
+
 	tokenString, err := Rtoken.GenerateJwtToken([]byte(Rtoken.GenerateRandomID(32)), Rtoken.CustomClaims{
-		SessionId: "adonaTesfaye",
+		SessionId: strconv.Itoa(int(user.ID)),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
 			IssuedAt:  time.Now().Unix(),
 			NotBefore: time.Now().Unix(),
 		},
 	})
+
 	output, _ := json.MarshalIndent(struct {
 		Token string `json:"token" `
 	}{
@@ -130,72 +133,3 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 	w.Write(output)
 	return
 }
-
-// func (uh *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-// 	var u entity.User
-// 	err := json.NewDecoder(r.Body).Decode(&u)
-// 	// if uh.service.EmailExists(u.Email) {
-// 	// 	responses.ERROR(w, http.StatusNotAcceptable, errors.New("Email already occupied"))
-// 	// 	json.NewEncoder(w).Encode(err)
-// 	// }
-// 	pass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		http.Error(w, errors.New("Password Encryption  failed", http.StatusInternalServerError),
-
-// 		json.NewEncoder(w).Encode(err)
-// 	}
-
-// 	u.Password = string(pass)
-
-// 	newUser, errs := uh.service.StoreUser(&u)
-// 	if len(errs) > 0 {
-// 		responses.ERROR(w, http.StatusInternalServerError, errors.New("User Creation Failed"))
-// 		return
-// 	}
-
-// 	json.NewEncoder(w).Encode(newUser)
-// }
-
-// func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
-// 	var u model.User
-
-// 	err := json.NewDecoder(r.Body).Decode(&u)
-// 	if err != nil {
-// 		responses.ERROR(w, http.StatusBadRequest, err)
-// 		return
-// 	}
-
-// 	user, errs := uh.service.UserByEmail(u.Email)
-// 	if len(errs) > 0 {
-// 		responses.ERROR(w, http.StatusUnauthorized, errors.New("authentication error"))
-// 		return
-// 	}
-
-// 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(u.Password))
-// 	if err != nil {
-// 		responses.ERROR(w, http.StatusUnauthorized, errors.New("authentication error"))
-// 		return
-// 	}
-// 	//claims := rtoken.NewClaims("adonaTesfaye", time.Now().AddDate(0, 1, 1).Unix())
-// 	tokenString, err := rtoken.GenerateToken("adonaTesfaye", rtoken.CustomClaims{
-// 		User: *user,
-// 		StandardClaims: jwt.StandardClaims{
-// 			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
-// 			IssuedAt:  time.Now().Unix(),
-// 			NotBefore: time.Now().Unix(),
-// 		},
-// 	})
-// 	if err != nil {
-// 		responses.ERROR(w, http.StatusInternalServerError, err)
-// 		return
-// 	}
-// 	// responses.JSON(w, http.StatusOK, user)
-// 	responses.JSON(w, http.StatusOK, struct {
-// 		Token string `json:"token" `
-// 	}{
-// 		Token: tokenString,
-// 	})
-// 	log.Println(user.id + " has logged in!")
-
-// }
