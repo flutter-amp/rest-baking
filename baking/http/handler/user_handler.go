@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"Movie-and-events/hash"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/flutter-amp/baking-api/baking/hash"
 	Rtoken "github.com/flutter-amp/baking-api/baking/rtoken"
 	"github.com/flutter-amp/baking-api/entity"
 	"github.com/flutter-amp/baking-api/user"
@@ -25,6 +26,38 @@ type UserHandler struct {
 
 func NewUserHandler(us user.UserService) *UserHandler {
 	return &UserHandler{UserService: us}
+}
+
+func (uh *UserHandler) GetSingleUser(w http.ResponseWriter,
+	r *http.Request, ps httprouter.Params) {
+
+	id, err := strconv.Atoi(ps.ByName("id"))
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	user, errs := uh.UserService.User(uint(id))
+
+	if len(errs) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	output, err := json.MarshalIndent(user, "", "\t\t")
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
+	return
 }
 
 //func (uh *UserHandler) Authenticated(next http.HandlerFunc) http.HandlerFunc {
@@ -112,7 +145,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 	tokenString, err := Rtoken.GenerateJwtToken([]byte(Rtoken.GenerateRandomID(32)), Rtoken.CustomClaims{
-		SessionId: "adonaTesfaye",
+		SessionId: strconv.Itoa(int(user.ID)),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
 			IssuedAt:  time.Now().Unix(),
