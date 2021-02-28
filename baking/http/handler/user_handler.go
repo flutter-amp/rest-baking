@@ -1,35 +1,33 @@
 package handler
 
-// import (
-// 	"Movie-and-events/model"
-// 	"encoding/json"
-// 	"errors"
-// 	"fmt"
-// 	"log"
-// 	"net/http"
-// 	"strings"
+import (
+	"Movie-and-events/hash"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"time"
 
-// 	"github.com/GoGroup/Movie-and-events/permission"
-// 	"golang.org/x/crypto/bcrypt"
+	"github.com/dgrijalva/jwt-go"
+	Rtoken "github.com/flutter-amp/baking-api/baking/rtoken"
+	"github.com/flutter-amp/baking-api/entity"
+	"github.com/flutter-amp/baking-api/user"
+	"github.com/julienschmidt/httprouter"
+	"golang.org/x/crypto/bcrypt"
+	// "github.com/flutter-amp/Baking-API/form"
+	// "github.com/flutter-amp/Baking-API/model"
+	// "github.com/flutter-amp/Baking-API/rtoken"
+	// "github.com/flutter-amp/Baking-API/session"
+)
 
-// 	// "github.com/flutter-amp/Baking-API/form"
-// 	// "github.com/flutter-amp/Baking-API/model"
-// 	// "github.com/flutter-amp/Baking-API/rtoken"
-// 	// "github.com/flutter-amp/Baking-API/session"
-// 	"github.com/flutter-amp/Baking-API/user"
-// )
+type UserHandler struct {
+	UserService user.UserService
+}
 
-// type UserHandler struct {
-// 	service      user.UserService
-// 	roleService  user.RoleService
-// 	tokenService rtoken.Service
-// }
+func NewUserHandler(us user.UserService) *UserHandler {
+	return &UserHandler{UserService: us}
+}
 
-// func NewUserHandler(us user.UserService, rs user.RoleService, ts rtoken.Service) *UserHandler {
-// 	return &UserHandler{service: us, roleService: rs, tokenService: ts}
-// }
-
-// func (uh *UserHandler) Authenticated(next http.HandlerFunc) http.HandlerFunc {
+//func (uh *UserHandler) Authenticated(next http.HandlerFunc) http.HandlerFunc {
 // 	// validate the token
 // 	fn := func(w http.ResponseWriter, r *http.Request) {
 // 		_token := r.Header.Get("Authorization")
@@ -45,45 +43,110 @@ package handler
 
 // }
 
-// func (uh *UserHandler) Authorized(next http.HandlerFunc) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		_token := r.Header.Get("Authorization")
-// 		_token = strings.Replace(_token, "Bearer ", "", 1)
-// 		if len(_token) == 0 {
-// 			responses.ERROR(w, http.StatusUnauthorized, errors.New("unauthorized: unauthorized to access the resource, log in again"))
-// 			return
-// 		}
-// 		claim, err := uh.tokenService.GetClaims(_token)
-// 		if err != nil {
-// 			responses.ERROR(w, http.StatusUnauthorized, err)
-// 			return
-// 		}
-// 		role, errs := uh.roleService.Role(claim.User.RoleID)
-// 		if len(errs) > 0 || !permission.HasPermission(r.URL.Path, role.Name, r.Method) {
-// 			responses.ERROR(w, http.StatusUnauthorized, errors.New("not authorized to execute the request"))
-// 			return
-// 		}
-// 		next.ServeHTTP(w, r)
-// 		return
-// 	}
-// }
+func (uh *UserHandler) SignUp(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Println("user handelr")
+
+	l := r.ContentLength
+	body := make([]byte, l)
+	r.Body.Read(body)
+	user := &entity.User{}
+	fmt.Println("in post user 2")
+
+	err := json.Unmarshal(body, user)
+	fmt.Println(user)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	pass, err2 := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err2 != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	user.Password = string(pass)
+	user, errs := uh.UserService.StoreUser(user)
+
+	if len(errs) > 0 {
+		fmt.Println("HEEEEEEEEEEEEEEEE")
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+	output, _ := json.MarshalIndent(user, "", "\t\t")
+	// p := fmt.Sprintf("/api/recipe/%d", recipe.ID)
+	// w.Header().Set("Location", p)
+	w.WriteHeader(http.StatusCreated)
+	w.Write(output)
+	return
+
+}
+func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Println("user handelr")
+
+	l := r.ContentLength
+	body := make([]byte, l)
+	r.Body.Read(body)
+	user := &entity.User{}
+	fmt.Println("in post user 2")
+
+	err := json.Unmarshal(body, user)
+	fmt.Println(user)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	user1, errs := uh.UserService.UserByEmail(user.Email)
+	fmt.Println("sencond fffffffffffffff")
+	fmt.Println(user1)
+	if len(errs) > 0 || !hash.ArePasswordsSame(user1.Password, user.Password) {
+		fmt.Println("HEEEEEEEEEEEEEEEE")
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+
+		return
+	}
+	tokenString, err := Rtoken.GenerateJwtToken([]byte(Rtoken.GenerateRandomID(32)), Rtoken.CustomClaims{
+		SessionId: "adonaTesfaye",
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
+			IssuedAt:  time.Now().Unix(),
+			NotBefore: time.Now().Unix(),
+		},
+	})
+	output, _ := json.MarshalIndent(struct {
+		Token string `json:"token" `
+	}{
+		Token: tokenString,
+	}, "", "\t\t")
+	// p := fmt.Sprintf("/api/recipe/%d", recipe.ID)
+	// w.Header().Set("Location", p)
+	w.WriteHeader(http.StatusCreated)
+	w.Write(output)
+	return
+}
 
 // func (uh *UserHandler) SignUp(w http.ResponseWriter, r *http.Request) {
-// 	var u model.User
+// 	var u entity.User
 // 	err := json.NewDecoder(r.Body).Decode(&u)
-// 	if uh.service.EmailExists(u.Email) {
-// 		responses.ERROR(w, http.StatusNotAcceptable, errors.New("Email already occupied"))
-// 		json.NewEncoder(w).Encode(err)
-// 	}
+// 	// if uh.service.EmailExists(u.Email) {
+// 	// 	responses.ERROR(w, http.StatusNotAcceptable, errors.New("Email already occupied"))
+// 	// 	json.NewEncoder(w).Encode(err)
+// 	// }
 // 	pass, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 // 	if err != nil {
 // 		fmt.Println(err)
-// 		responses.ERROR(w, http.StatusInternalServerError, errors.New("Password Encryption  failed"))
+// 		http.Error(w, errors.New("Password Encryption  failed", http.StatusInternalServerError),
+
 // 		json.NewEncoder(w).Encode(err)
 // 	}
 
 // 	u.Password = string(pass)
-// 	u.RoleID = 1
 
 // 	newUser, errs := uh.service.StoreUser(&u)
 // 	if len(errs) > 0 {
@@ -96,7 +159,7 @@ package handler
 
 // func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request) {
 // 	var u model.User
-// 	//var admin = false
+
 // 	err := json.NewDecoder(r.Body).Decode(&u)
 // 	if err != nil {
 // 		responses.ERROR(w, http.StatusBadRequest, err)
@@ -114,27 +177,25 @@ package handler
 // 		responses.ERROR(w, http.StatusUnauthorized, errors.New("authentication error"))
 // 		return
 // 	}
-
-// 	//admin = uh.checkAdmin(user.RoleID)
-// 	// user.Password = ""
-// 	// tokenString, err := uh.tokenService.GenerateToken(rtoken.CustomJwtClaim{
-// 	// 	User: *user,
-// 	// 	StandardClaims: jwt.StandardClaims{
-// 	// 		ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
-// 	// 		IssuedAt:  time.Now().Unix(),
-// 	// 		NotBefore: time.Now().Unix(),
-// 	// 	},
-// 	// })
+// 	//claims := rtoken.NewClaims("adonaTesfaye", time.Now().AddDate(0, 1, 1).Unix())
+// 	tokenString, err := rtoken.GenerateToken("adonaTesfaye", rtoken.CustomClaims{
+// 		User: *user,
+// 		StandardClaims: jwt.StandardClaims{
+// 			ExpiresAt: time.Now().AddDate(0, 1, 1).Unix(),
+// 			IssuedAt:  time.Now().Unix(),
+// 			NotBefore: time.Now().Unix(),
+// 		},
+// 	})
 // 	if err != nil {
 // 		responses.ERROR(w, http.StatusInternalServerError, err)
 // 		return
 // 	}
-// 	responses.JSON(w, http.StatusOK, user)
-// 	// responses.JSON(w, http.StatusOK, struct {
-// 	//   Token string json:"token"
-// 	// }{
-// 	//   Token: tokenString,
-// 	// })
-// 	log.Println(user.Email + " has logged in!")
+// 	// responses.JSON(w, http.StatusOK, user)
+// 	responses.JSON(w, http.StatusOK, struct {
+// 		Token string `json:"token" `
+// 	}{
+// 		Token: tokenString,
+// 	})
+// 	log.Println(user.id + " has logged in!")
 
 // }

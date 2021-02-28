@@ -4,14 +4,18 @@ import (
 	"net/http"
 
 	"github.com/flutter-amp/baking-api/baking/http/handler"
+	"github.com/flutter-amp/baking-api/entity"
 
 	resrep "github.com/flutter-amp/baking-api/recipe/repository"
 	resser "github.com/flutter-amp/baking-api/recipe/service"
 
+	//userhand "github.com/flutter-amp/baking-api/recipe/service"
 	comrep "github.com/flutter-amp/baking-api/comment/repository"
 	comser "github.com/flutter-amp/baking-api/comment/service"
 
-	"github.com/flutter-amp/baking-api/entity"
+	userrep "github.com/flutter-amp/baking-api/user/repository"
+	userser "github.com/flutter-amp/baking-api/user/service"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/julienschmidt/httprouter"
@@ -53,6 +57,10 @@ func main() {
 	commentService := comser.NewCommentService(commentRepo)
 	commentHandler := handler.NewCommentHandler(commentService)
 
+	userRepo := userrep.NewUserGormRepo(dbconn)
+	userService := userser.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userService)
+
 	router := httprouter.New()
 	router.GET("/recipes", recipeHandler.GetRecipes)
 	router.POST("/recipes/new", recipeHandler.PostRecipe)
@@ -68,6 +76,10 @@ func main() {
 	router.GET("/recipe/comments/:rid", commentHandler.GetCommentsByRecipe)
 	router.PUT("/comments/update/:id", commentHandler.PutComment)
 	router.DELETE("/comments/delete/:id", commentHandler.DeleteComment)
+	router.POST("/signup", userHandler.SignUp)
+	router.POST("/login", userHandler.Login)
+	//http.HandleFunc("/login", uh.Login)
+	//	http.HandleFunc("/signup", uh.SignUp)
 
 	http.ListenAndServe(":8181", router)
 }

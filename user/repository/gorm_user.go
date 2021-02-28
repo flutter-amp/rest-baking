@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"Movie-and-events/model"
-
+	"github.com/flutter-amp/baking-api/entity"
 	"github.com/flutter-amp/baking-api/user"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -16,8 +16,8 @@ func NewUserGormRepo(db *gorm.DB) user.UserRepository {
 	return &UserGormRepo{conn: db}
 }
 
-func (userRepo *UserGormRepo) User(id uint) (*model.User, []error) {
-	user := model.User{}
+func (userRepo *UserGormRepo) User(id uint) (*entity.User, []error) {
+	user := entity.User{}
 	errs := userRepo.conn.First(&user, id).GetErrors()
 	if len(errs) > 0 {
 		return nil, errs
@@ -26,8 +26,8 @@ func (userRepo *UserGormRepo) User(id uint) (*model.User, []error) {
 }
 
 // UserByEmail retrieves a user by its email address from the database
-func (userRepo *UserGormRepo) UserByEmail(email string) (*model.User, []error) {
-	user := model.User{}
+func (userRepo *UserGormRepo) UserByEmail(email string) (*entity.User, []error) {
+	user := entity.User{}
 	errs := userRepo.conn.Find(&user, "email=?", email).GetErrors()
 	if len(errs) > 0 {
 		return nil, errs
@@ -36,15 +36,15 @@ func (userRepo *UserGormRepo) UserByEmail(email string) (*model.User, []error) {
 }
 
 //UpdateUser updates a given user in the database
-// func (userRepo *UserGormRepo) UpdateUserAmount(user *model.User, Amount uint) *model.User {
+// func (userRepo *UserGormRepo) UpdateUserAmount(user *entity.User, Amount uint) *entity.User {
 // 	usr := user
-// 	userRepo.conn.Model(&usr).UpdateColumn("amount", Amount)
+// 	userRepo.conn.entity(&usr).UpdateColumn("amount", Amount)
 
 // 	return usr
 // }
 
 // DeleteUser deletes a given user from the database
-func (userRepo *UserGormRepo) DeleteUser(id uint) (*model.User, []error) {
+func (userRepo *UserGormRepo) DeleteUser(id uint) (*entity.User, []error) {
 	usr, errs := userRepo.User(id)
 	if len(errs) > 0 {
 		return nil, errs
@@ -57,7 +57,7 @@ func (userRepo *UserGormRepo) DeleteUser(id uint) (*model.User, []error) {
 }
 
 // StoreUser stores a new user into the database
-func (userRepo *UserGormRepo) StoreUser(user *model.User) (*model.User, []error) {
+func (userRepo *UserGormRepo) StoreUser(user *entity.User) (*entity.User, []error) {
 	usr := user
 	errs := userRepo.conn.Create(usr).GetErrors()
 	if len(errs) > 0 {
@@ -66,7 +66,7 @@ func (userRepo *UserGormRepo) StoreUser(user *model.User) (*model.User, []error)
 	return usr, errs
 }
 func (userRepo *UserGormRepo) EmailExists(email string) bool {
-	user := model.User{}
+	user := entity.User{}
 	errs := userRepo.conn.Find(&user, "email=?", email).GetErrors()
 	if len(errs) > 0 {
 		return false

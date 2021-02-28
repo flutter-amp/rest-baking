@@ -87,6 +87,9 @@ func (rh *RecipeHandler) PostRecipe(w http.ResponseWriter, r *http.Request, ps h
 	fmt.Println("in post recipe 2")
 
 	err := json.Unmarshal(body, recipe)
+	// for i := 0; i < recipe..length; i++ {
+	// 	fmt.Println("gooooooooooooooooooooooooo")
+	// }
 	fmt.Println(recipe)
 
 	if err != nil {
