@@ -32,6 +32,16 @@ func (rs *RecipeService) Ingredients(id uint) ([]entity.Ingredient, []error) {
 
 	return ing, err
 }
+func (rs *RecipeService) Steps(id uint) ([]entity.Step, []error) {
+
+	steps, err := rs.recipeRepo.Steps(id)
+
+	if len(err) > 0 {
+		return nil, err
+	}
+
+	return steps, err
+}
 func (rs *RecipeService) StoreRecipe(recipe *entity.Recipe) (*entity.Recipe, []error) {
 	res, errs := rs.recipeRepo.StoreRecipe(recipe)
 	if len(errs) > 0 {

@@ -10,7 +10,7 @@ type Recipe struct {
 	Title       string `json:"title" gorm:"type:varchar(255);not null"`
 	Duration    string `json:"duration" gorm:"type:varchar(255);not null"`
 	Servings    int    `json:"servings"`
-	imageUrl    string `json:"imageUrl" gorm:"type:varchar(255);not null"`
+	ImageUrl    string `json:"imageUrl" gorm:"type:varchar(255);not null"`
 	Comments    []Comment
 	Ingredients []Ingredient
 	Steps       []Step

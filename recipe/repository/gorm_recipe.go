@@ -44,7 +44,25 @@ func (recipeRepo *RecipeGormRepo) Recipe(id uint) (*entity.Recipe, []error) {
 	}
 	return &recipe, errs
 }
+func (recipeRepo *RecipeGormRepo) Steps(id uint) ([]entity.Step, []error) {
+	steps := []entity.Step{}
+	err := recipeRepo.conn.Where("recipe_id = ?", id).Find(&steps).GetErrors()
 
+	if len(err) > 0 {
+		return nil, err
+	}
+
+	return steps, err
+}
+
+// func (recipeRepo *RecipeGormRepo) Recipe(id uint) (*entity.Recipe, []error) {
+// 	recipe := entity.Recipe{}
+// 	errs := recipeRepo.conn.First(&recipe, id).GetErrors()
+// 	if len(errs) > 0 {
+// 		return nil, errs
+// 	}
+// 	return &recipe, errs
+// }
 func (recipeRepo *RecipeGormRepo) DeleteRecipe(id uint) (*entity.Recipe, []error) {
 	rcpe, errs := recipeRepo.Recipe(id)
 
@@ -67,7 +85,13 @@ func (recipeRepo *RecipeGormRepo) DeleteRecipe(id uint) (*entity.Recipe, []error
 func (recipeRepo *RecipeGormRepo) UpdateRecipe(recipe *entity.Recipe) (*entity.Recipe, []error) {
 	rsp := recipe
 	err := recipeRepo.conn.Where("recipe_id=?", rsp.ID).Delete(entity.Ingredient{}).GetErrors()
+	errt := recipeRepo.conn.Where("recipe_id=?", rsp.ID).Delete(entity.Step{}).GetErrors()
 	if len(err) > 0 {
+		print(err)
+		return nil, err
+
+	}
+	if len(errt) > 0 {
 		print(err)
 		return nil, err
 
