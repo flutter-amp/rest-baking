@@ -40,13 +40,21 @@ func (us *UserService) UserByEmail(email string) (*entity.User, []error) {
 }
 
 // DeleteUser deletes a given application user
-// func (us *UserService) DeleteUser(id uint) (*entity.User, []error) {
-// 	usr, errs := us.userRepo.DeleteUser(id)
-// 	if len(errs) > 0 {
-// 		return nil, errs
-// 	}
-// 	return usr, errs
-// }
+func (us *UserService) DeleteUser(id uint) (*entity.User, []error) {
+	usr, errs := us.userRepo.DeleteUser(id)
+	if len(errs) > 0 {
+		return nil, errs
+	}
+	return usr, errs
+}
+
+func (us *UserService) UpdateUser(user *entity.User) (*entity.User, []error) {
+	usr, errs := us.userRepo.UpdateUser(user)
+	if len(errs) > 0 {
+		return nil, errs
+	}
+	return usr, errs
+}
 
 // StoreUser stores a given application user
 func (us *UserService) StoreUser(user *entity.User) (*entity.User, []error) {

@@ -56,6 +56,15 @@ func (userRepo *UserGormRepo) DeleteUser(id uint) (*entity.User, []error) {
 	return usr, errs
 }
 
+func (userRepo *UserGormRepo) UpdateUser(user *entity.User) (*entity.User, []error) {
+	usr := user
+	errs := userRepo.conn.Save(usr).GetErrors()
+	if len(errs) > 0 {
+		return nil, errs
+	}
+	return usr, errs
+}
+
 // StoreUser stores a new user into the database
 func (userRepo *UserGormRepo) StoreUser(user *entity.User) (*entity.User, []error) {
 	usr := user
