@@ -125,7 +125,7 @@ func (recipeRepo *RecipeGormRepo) StoreRecipe(recipe *entity.Recipe) (*entity.Re
 
 func (recipeRepo *RecipeGormRepo) UserRecipes(uid uint) ([]entity.Recipe, []error) {
 	usrRecipes := []entity.Recipe{}
-	errs := recipeRepo.conn.Where("user_id = ?", uid).Find(&usrRecipes).GetErrors()
+	errs := recipeRepo.conn.Where("recipe_user = ?", uid).Find(&usrRecipes).GetErrors()
 	//errs := recipeRepo.conn.Model(user).Related(&usrRecipes, "Orders").GetErrors()
 	if len(errs) > 0 {
 		return nil, errs
