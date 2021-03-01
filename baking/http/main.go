@@ -84,6 +84,8 @@ func main() {
 	router.POST("/signup", userHandler.SignUp)
 	router.POST("/login", userHandler.Login)
 	router.GET("/users/:id", userHandler.GetSingleUser)
+	router.PUT("/users/update/:id", userHandler.PutUser)
+	router.DELETE("/users/delete/:id", userHandler.DeleteUser)
 	//http.HandleFunc("/login", uh.Login)
 	//	http.HandleFunc("/signup", uh.SignUp)
 
