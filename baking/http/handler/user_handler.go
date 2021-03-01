@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -64,15 +63,16 @@ func (uh *UserHandler) GetSingleUser(w http.ResponseWriter,
 func (uh *UserHandler) Authenticated(next http.HandlerFunc) http.HandlerFunc {
 	// validate the token
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		_token := r.Header.Get("Authorization")
-		_token = strings.Replace(_token, "Bearer ", "", 1)
-		//valid, err := uh.tokenService.ValidateToken(_token)
-		// if err != nil && !valid {
-		// 	responses.ERROR(w, http.StatusUnauthorized, errors.New("unauthenticated: unauthorized to access the resource, log in again"))
-		// 	return
-		// }
+		// _token := r.Header.Get("Authorization")
+		// _token = strings.Replace(_token, "Bearer ", "", 1)
+		// // valid, err := uh.tokenService.ValidateToken(_token)
+		// // if err != nil && !valid {
+		// //   responses.ERROR(w, http.StatusUnauthorized, errors.New("unauthenticated: unauthorized to access the resource, log in again"))
+		// //   return
+		// // }
 		next.ServeHTTP(w, r)
 	}
+	fmt.Println("authentication")
 	return http.HandlerFunc(fn)
 
 }
@@ -158,7 +158,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 	})
 
 	output, _ := json.MarshalIndent(struct {
-		Token string `json:"token" `
+		Token string `json:"token"`
 	}{
 		Token: tokenString,
 	}, "", "\t\t")
@@ -171,7 +171,7 @@ func (uh *UserHandler) Login(w http.ResponseWriter, r *http.Request, ps httprout
 
 func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	_, err := strconv.Atoi(ps.ByName("id"))
+	id, err := strconv.Atoi(ps.ByName("id"))
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -179,13 +179,13 @@ func (uh *UserHandler) DeleteUser(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	// _, errs := uh.UserService.DeleteUser(uint(id))
+	_, errs := uh.UserService.DeleteUser(uint(id))
 
-	// if len(errs) > 0 {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	// 	return
-	// }
+	if len(errs) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNoContent)
@@ -212,23 +212,23 @@ func (uh *UserHandler) PutUser(w http.ResponseWriter, r *http.Request, ps httpro
 	body := make([]byte, l)
 	r.Body.Read(body)
 	json.Unmarshal(body, &user)
-	// user, errs = uh.UserService.UpdateUser(user)
+	user, errs = uh.UserService.UpdateUser(user)
 
-	// if len(errs) > 0 {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	// 	return
-	// }
+	if len(errs) > 0 {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 
-	// output, err := json.MarshalIndent(user, "", "\t\t")
+	output, err := json.MarshalIndent(user, "", "\t\t")
 
-	// if err != nil {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-	// 	return
-	// }
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 
-	// w.Header().Set("Content-Type", "application/json")
-	// w.Write(output)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(output)
 	return
 }

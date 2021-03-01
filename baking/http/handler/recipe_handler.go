@@ -26,10 +26,10 @@ func NewRecipeHandler(rspService recipe.RecipeService) *RecipeHandler {
 	return &RecipeHandler{recipeService: rspService}
 }
 
-func (rh *RecipeHandler) GetRecipes(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (rh *RecipeHandler) GetRecipes(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	recipes, errs := rh.recipeService.Recipes()
-
+	fmt.Println("jummmmpppp")
 	if len(errs) > 0 {
 		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
